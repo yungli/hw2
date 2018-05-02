@@ -1,0 +1,32 @@
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+  <devices xmlns="http://tail-f.com/ns/ncs">
+    <device>
+      <name>{$name}</name>
+      <config>
+        <ip xmlns="urn:ios">
+          <name-server>{$dns}</name-server>
+          <route>
+            <ip-route-forwarding-list>
+              <prefix>0.0.0.0</prefix>
+              <mask>0.0.0.0</mask> 
+              <forwarding-address>{$gateway}</forwarding-address>
+            </ip-route-forwarding-list>
+          </route>
+        </ip>
+        <interface xmlns="urn:ios">
+          <GigabitEthernet>
+            <name>{$intf}</name>
+            <ip>
+              <address>
+                <primary>
+                  <address>{$static-ip}</address>
+                  <mask>255.255.255.0</mask>
+                </primary>
+              </address>
+            </ip>
+          </GigabitEthernet>
+        </interface>
+      </config>
+    </device>
+  <devices>
+</config-template>

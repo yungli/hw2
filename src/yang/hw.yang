@@ -1,0 +1,114 @@
+module hw {
+
+  namespace "http://example.com/hw";
+  prefix hw;
+
+  import ietf-inet-types {
+    prefix inet;
+  }
+  import tailf-common {
+    prefix tailf;
+  }
+  import tailf-ncs {
+    prefix ncs;
+  }
+
+  description
+    "Bla bla...";
+
+  revision 2016-01-01 {
+    description
+      "Initial revision.";
+  }
+  augment /ncs:services {
+  list hw {
+    description "This is an RFS skeleton service";
+    key service-name;
+    unique service-type;
+    uses ncs:service-data;
+    ncs:servicepoint hw-servicepoint;
+
+    leaf service-name {
+      mandatory true;
+      tailf:info "Unique service id";
+      tailf:cli-allow-range;
+      type string;
+    }
+   
+    // may replace this with other ways of refering to the devices.
+
+    list device {
+      key name;
+      unique interface;
+
+      leaf name {
+        mandatory true;
+        type leafref {
+          path "/ncs:devices/ncs:device/ncs:name";
+        }
+      }
+      
+      leaf service-type {
+        mandatory true;
+        tailf:info "input service type : dhcp or static-ip";
+        type enumeration {
+          enum dhcp;
+          enum static-ip;   
+        }
+      }
+
+      leaf ip-address {
+        mandatory true;
+        tailf:info "input a valid IP address if service is static IP";
+        when "current()/../service-type='static-ip'" {
+          tailf:dependency '.';
+          tailf:dependency '../service-type';
+        }
+        tailf:display-when "current()/../service-type='static-ip'";
+        type inet:ipv4-address {
+          pattern "192\.168\.1\..+" {
+          error-message "Invalid IP address. IP address should be in the 192.168.1.0/24 range."
+        }
+      }
+    }
+
+      leaf default-gateway {
+        mandatory true;
+        tailf:info "input a valid default gateway";
+        when "current()/../service-type='static-ip'" {
+          tailf:dependency '.';
+          tailf:dependency '../service-type';
+        }
+        tailf:dispaly-when "current()/../service-type='static-ip'";
+        type inet:ipv4-address {
+          pattern  "192\.168\.1\..+" {
+          error-message "Invalid gateway address. Gateway address should be in the 192.168.1.0/24 range."
+        }
+      }
+    }
+
+    leaf interface {
+      mandatory true;
+      tailf:info "input a unique interface";
+      type string;
+      must "count(../../../hw[service-name!=current()/../../service-name]/device[name=current()/../name][interface=current()])=0" {
+        {
+          error-message "Interface is already used for another service.";
+          tailf:dependency ".";
+          tailf:dependency "../../../hw";
+        }
+      }
+    }
+
+    leaf dns {
+      mandatory false;
+      tailf:info "input a valid name server ip";
+      type inet:ipv4-address;
+    }
+
+   }
+
+
+    }
+  }
+}
